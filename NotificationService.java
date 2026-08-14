@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,10 +20,27 @@ public final class NotificationService {
      * @throws IllegalArgumentException เมื่อ input ผิดเงื่อนไข
      */
     public NotificationService(List<Notifier> channels, Priority threshold) {
-        // TODO(4.1): validate — channels ห้าม null/มีสมาชิก null,
-        //            threshold ห้าม null → throw IllegalArgumentException
-        // TODO(4.2): ✗ เก็บลูกศรตรง ๆ เสี่ยง aliasing → defensive copy!
-        this.channels = channels;
+        
+
+ 
+if (channels == null) {
+            throw new IllegalArgumentException("Channels list cannot be null");
+        }
+        if (threshold == null) {
+            throw new IllegalArgumentException("Threshold cannot be null");
+        }
+
+        // 2. Defensive Copy ขาเข้าก่อน เพื่อป้องกัน Aliasing และ Mutation จากภายนอก
+        List<Notifier> channelsCopy = new ArrayList<>(channels);
+
+        // 3. Validate สมาชิกภายใน List ว่าต้องไม่มี null
+        for (Notifier channel : channelsCopy) {
+            if (channel == null) {
+                throw new IllegalArgumentException("Channel element cannot be null");
+            }
+        }
+
+        this.channels = List.copyOf(channelsCopy); // หรือใช้ channelsCopy โดยตรง
         this.threshold = threshold;
     }
 
@@ -30,7 +48,7 @@ public final class NotificationService {
     public int channelCount() {
         return channels.size();
     }
-
+       
     /**
      * กระจายข้อความไปทุกช่องทาง ถ้าความสำคัญถึงเกณฑ์
      *
@@ -41,8 +59,23 @@ public final class NotificationService {
      */
     public boolean broadcast(String message, Priority priority) {
         // TODO(4.3): validate message (null/ว่าง) และ priority (null)
+if (message == null || message.isEmpty()) {
+            throw new IllegalArgumentException("Message cannot be null or empty");
+        }
+        if (priority == null) {
+            throw new IllegalArgumentException("Priority cannot be null");
+        }
+
         // TODO(4.4): ถ้า priority ต่ำกว่า threshold ให้ "ไม่ส่ง" และคืน false
-        //            คำใบ้: ใช้ Priority.isAtLeast(...) ที่คุณเพิ่งเขียน
+           //            คำใบ้: ใช้ Priority.isAtLeast(...) ที่คุณเพิ่งเขียน
+        if (!priority.isAtLeast(this.threshold)) {
+            return false;
+        }
+
+   
+        // TODO(4.4): ถ้า priority ต่ำกว่า threshold ให้ "ไม่ส่ง" และคืน false
+     
+          
         for (Notifier n : channels) {
             n.send(message);    // polymorphism — ไม่สน concrete type เลย (OCP)
         }
